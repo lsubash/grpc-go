@@ -25,8 +25,6 @@ import (
 	"log"
 	"net"
 	"crypto/tls"
-	"crypto/x509"
-	"io/ioutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
@@ -50,24 +48,18 @@ func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloRepl
 func main() {
 	flag.Parse()
 	
-	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
+	cert, err := tls.LoadX509KeyPair("cert/server-cert.pem", "cert/server-key.pem")
 	if err != nil {
 		log.Fatalf("failed to load server key pair: %s", err)
 	}
 
-	caCert, err := ioutil.ReadFile("ca.crt")
-	if err != nil {
-		log.Fatalf("failed to read CA certificate: %s", err)
-	}
+	// Create the credentials
+	config := &tls.Config{
+	Certificates: []tls.Certificate{cert},
+	ClientAuth:   tls.NoClientCert,
+    }
 
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
-
-	creds := credentials.NewTLS(&tls.Config{
-		Certificates: []tls.Certificate{cert},
-		ClientCAs:    caCertPool,
-		ClientAuth:   tls.RequireAndVerifyClientCert,
-	})
+	creds := credentials.NewTLS(config)
 
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {

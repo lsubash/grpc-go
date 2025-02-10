@@ -44,7 +44,7 @@ var (
 func main() {
 	flag.Parse()
 
-	caCert, err := ioutil.ReadFile("ca.crt")
+	caCert, err := ioutil.ReadFile("cert/ca-cert.pem")
 	if err != nil {
 		log.Fatalf("failed to read CA certificate: %s", err)
 	}
@@ -52,15 +52,11 @@ func main() {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
-	clientCert, err := tls.LoadX509KeyPair("client.crt", "client.key")
-	if err != nil {
-		log.Fatalf("failed to load client key pair: %s", err)
-	}
-
-	creds := credentials.NewTLS(&tls.Config{
-		Certificates: []tls.Certificate{clientCert},
-		RootCAs:      caCertPool,
-	})
+	// Create the credentials and return it
+	config := &tls.Config{
+        RootCAs:      caCertPool,
+    }
+	creds := credentials.NewTLS(config)
 
 	// Set up a connection to the server.
 	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(creds))
