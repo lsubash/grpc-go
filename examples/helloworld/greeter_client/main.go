@@ -24,9 +24,11 @@ import (
 	"flag"
 	"log"
 	"time"
-
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
@@ -41,8 +43,27 @@ var (
 
 func main() {
 	flag.Parse()
+
+	caCert, err := ioutil.ReadFile("ca.crt")
+	if err != nil {
+		log.Fatalf("failed to read CA certificate: %s", err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	clientCert, err := tls.LoadX509KeyPair("client.crt", "client.key")
+	if err != nil {
+		log.Fatalf("failed to load client key pair: %s", err)
+	}
+
+	creds := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{clientCert},
+		RootCAs:      caCertPool,
+	})
+
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
