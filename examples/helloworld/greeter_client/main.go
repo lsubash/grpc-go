@@ -36,11 +36,20 @@ const (
 	defaultName = "world"
 )
 
+
 var (
 	addr = flag.String("addr", "localhost:50051", "the address to connect to")
-	name = flag.String("name", defaultName, "Name to greet")
+	status = int32(1)
 )
 
+/*func convertStatus(s int) proto.UpdateNodeAttestStatusRequest_Code {
+	m := map[int]proto.UpdateNodeAttestStatusRequest_Code{
+		0: proto.UpdateNodAttestStatusRequest_ATTEST_STATUS_SUCEESS,
+		1: proto.UpdateNodeAttestStatusRequest_ATTEST_STATUS_FAIL,
+	}
+	return m[s]
+}
+*/
 func main() {
 	flag.Parse()
 
@@ -64,12 +73,12 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	c := pb.NewNodeAttestationManagerServiceClient(conn)
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	r, err := c.UpdateNodeAttestationStatus(ctx, &pb.UpdateNodeAttestStatusRequest{Code: status})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
