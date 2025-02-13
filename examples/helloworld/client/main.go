@@ -24,9 +24,12 @@ import (
 	"flag"
 	"log"
 	"time"
-
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
+	"github.com/google/uuid"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
@@ -34,25 +37,52 @@ const (
 	defaultName = "world"
 )
 
+
 var (
 	addr = flag.String("addr", "localhost:50051", "the address to connect to")
-	name = flag.String("name", defaultName, "Name to greet")
+	status = int32(1)
 )
 
+/*func convertStatus(s int) proto.UpdateNodeAttestStatusRequest_Code {
+	m := map[int]proto.UpdateNodeAttestStatusRequest_Code{
+		0: proto.UpdateNodAttestStatusRequest_ATTEST_STATUS_SUCEESS,
+		1: proto.UpdateNodeAttestStatusRequest_ATTEST_STATUS_FAIL,
+	}
+	return m[s]
+}
+*/
 func main() {
 	flag.Parse()
+
+	caCert, err := ioutil.ReadFile("cert/ca-cert.pem")
+	if err != nil {
+		log.Fatalf("failed to read CA certificate: %s", err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	// Create the credentials and return it
+	config := &tls.Config{
+        RootCAs:      caCertPool,
+    }
+	creds := credentials.NewTLS(config)
+
 	// Set up a connection to the server.
-	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(*addr, grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	c := pb.NewNodeAttestationManagerServiceClient(conn)
+
+	//Generate a random UUID
+	reqUuid := uuid.New().String()
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	r, err := c.UpdateNodeAttestationStatus(ctx, &pb.UpdateNodeAttestStatusRequest{Code: status, systemuuid:reqUuid})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}

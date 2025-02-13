@@ -14,25 +14,26 @@
 
 syntax = "proto3";
 
-option go_package = "google.golang.org/grpc/examples/helloworld/helloworld";
-option java_multiple_files = true;
-option java_package = "io.grpc.examples.helloworld";
-option java_outer_classname = "HelloWorldProto";
+option go_package = "github.com/lsubash/grpc-go/tree/grpc_am/examples/helloworld/helloworld";
 
-package helloworld;
+package AttestationManager;
 
-// The greeting service definition.
-service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
+service NodeAttestationManagerService {
+  // NodeAttestationManagerService is called from edge node to set the attestaion status
+  rpc UpdateNodeAttestationStatus(UpdateNodeAttestStatusRequest) returns (UpdateNodeAttestStatusResponse) {}
 }
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
+
+message UpdateNodeAttestStatusRequest {
+ /* enum Code {
+    ATTEST_STATUS_SUCEESS = 0;
+    ATTEST_STATUS_FAIL = 1;
+  }*/
+  int32 code = 1; // status code
+  string systemuuid = 2; // system uuid or node name
 }
 
-// The response message containing the greetings
-message HelloReply {
+//Response message
+message UpdateNodeAttestStatusResponse {
   string message = 1;
 }

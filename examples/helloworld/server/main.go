@@ -22,37 +22,54 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"net"
-
+	"crypto/tls"
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/grpc/credentials"
+	"github.com/google/uuid"
+	 pb "github.com/lsubash/grpc-go/tree/grpc_am/examples/helloworld/helloworld"
 )
 
 var (
 	port = flag.Int("port", 50051, "The server port")
 )
 
-// server is used to implement helloworld.GreeterServer.
+// server is used to implement helloworld.server.
 type server struct {
-	pb.UnimplementedGreeterServer
+	pb.UnimplementedNodeAttestationManagerServiceServer
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
+func (s *server) UpdateNodeAttestationStatus (_ context.Context, in *pb.UpdateNodeAttestStatusRequest) (*pb.UpdateNodeAttestStatusResponse, error) {
+	log.Printf("Received: %v %v", in.code, in.systemuuid)
+	responseuuid := uuid.New().String()
+	return &pb.UpdateNodeAttestStatusResponse{Message: "Hello ", uuid : responseuuid}, nil
 }
 
 func main() {
 	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	
+	cert, err := tls.LoadX509KeyPair("cert/server-cert.pem", "cert/server-key.pem")
+	if err != nil {
+		log.Fatalf("failed to load server key pair: %s", err)
+	}
+
+	// Create the credentials
+	config := &tls.Config{
+	Certificates: []tls.Certificate{cert},
+	ClientAuth:   tls.NoClientCert,
+    }
+
+	creds := credentials.NewTLS(config)
+
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &server{})
+
+	s := grpc.NewServer(grpc.Creds(creds))
+	pb.RegisterNodeAttestationManagerServiceServer(s, &server{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
