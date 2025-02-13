@@ -29,7 +29,8 @@ message UpdateNodeAttestStatusRequest {
     ATTEST_STATUS_SUCEESS = 0;
     ATTEST_STATUS_FAIL = 1;
   }*/
-  int32 code = 1;
+  int32 code = 1; // status code
+  string systemuuid = 2; // system uuid or node name
 }
 
 //Response message

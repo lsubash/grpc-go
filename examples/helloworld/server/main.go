@@ -27,22 +27,24 @@ import (
 	"crypto/tls"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"github.com/google/uuid"
+	 pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 var (
 	port = flag.Int("port", 50051, "The server port")
 )
 
-// server is used to implement helloworld.GreeterServer.
+// server is used to implement helloworld.server.
 type server struct {
 	pb.UnimplementedNodeAttestationManagerServiceServer
 }
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) UpdateNodeAttestationStatus (_ context.Context, in *pb.UpdateNodeAttestStatusRequest) (*pb.UpdateNodeAttestStatusResponse, error) {
-	log.Printf("Received: %v", in.Code)
-	return &pb.UpdateNodeAttestStatusResponse{Message: "Hello "}, nil
+	log.Printf("Received: %v %v", in.code, in.systemuuid)
+	responseuuid := uuid.New().String()
+	return &pb.UpdateNodeAttestStatusResponse{Message: "Hello ", uuid : responseuuid}, nil
 }
 
 func main() {

@@ -29,6 +29,7 @@ import (
 	"io/ioutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"github.com/google/uuid"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
@@ -75,10 +76,13 @@ func main() {
 	defer conn.Close()
 	c := pb.NewNodeAttestationManagerServiceClient(conn)
 
+	//Generate a random UUID
+	reqUuid := uuid.New().String()
+
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.UpdateNodeAttestationStatus(ctx, &pb.UpdateNodeAttestStatusRequest{Code: status})
+	r, err := c.UpdateNodeAttestationStatus(ctx, &pb.UpdateNodeAttestStatusRequest{Code: status, systemuuid:reqUuid})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
