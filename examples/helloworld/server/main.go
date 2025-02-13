@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"github.com/google/uuid"
-	 pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	 pb "github.com/lsubash/grpc-go/tree/grpc_am/examples/helloworld/helloworld"
 )
 
 var (
