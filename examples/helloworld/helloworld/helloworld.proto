@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-option go_package = "github.com/lsubash/grpc-go/tree/grpc_am/examples/helloworld/helloworld";
+option go_package = "github.com/lsubash/grpc-go/examples/helloworld/helloworld";
 
 package AttestationManager;
 
